@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="utf-8" />
+  <title>Three.js Body Control</title>
+  <script type="module" crossorigin src="/assets/index-D9PCch7I.js"></script>
+</head>
+<body>
+
+<div class="silueta-fixed">
+  <div class="silueta-gumbi">
+    <button class="body-btn head" data-part="head">Glava</button>
+    <button class="body-btn torso" data-part="torso">Torzo</button>
+    <!-- Lijeva ruka (gledateljeva lijeva) -->
+    <button class="body-btn left_shoulder" data-part="left_shoulder">L Nadlaktica</button>
+    <button class="body-btn left_arm" data-part="left_arm">L Podlaktica</button>
+    <button class="body-btn left_hand" data-part="left_hand">L Šaka</button>
+    <!-- Desna ruka (gledateljeva desna) -->
+    <button class="body-btn right_shoulder" data-part="right_shoulder">D Nadlaktica</button>
+    <button class="body-btn right_arm" data-part="right_arm">D Podlaktica</button>
+    <button class="body-btn right_hand" data-part="right_hand">D Šaka</button>
+    <!-- Lijeva noga -->
+    <button class="body-btn left_thigh" data-part="left_thigh">L Natkoljenica</button>
+    <button class="body-btn left_shin" data-part="left_shin">L Potkoljenica</button>
+    <button class="body-btn left_foot" data-part="left_foot">L Stopalo</button>
+    <button class="body-btn left_toes" data-part="left_toes">L Prsti</button>
+    <!-- Desna noga -->
+    <button class="body-btn right_thigh" data-part="right_thigh">D Natkoljenica</button>
+    <button class="body-btn right_shin" data-part="right_shin">D Potkoljenica</button>
+    <button class="body-btn right_foot" data-part="right_foot">D Stopalo</button>
+    <button class="body-btn right_toes" data-part="right_toes">D Prsti</button>
+  </div>
+</div>
+
+<div class="slider-box" id="sliderBox">
+  <!-- GLAVA -->
+  <div class="slider-group" data-part="head">
+    <label class="slider-label" for="headSlider">Rotiraj glavu i vrat (X)</label>
+    <input type="range" id="headSlider" min="-45" max="45" value="0" class="slider-input">
+    <label class="slider-label y-label" for="headYSlider">Rotiraj glavu i vrat (Y)</label>
+    <input type="range" id="headYSlider" min="-45" max="45" value="0" class="slider-input">
+  </div>
+  <!-- TORZO -->
+  <div class="slider-group" data-part="torso">
+    <label class="slider-label" for="torsoSlider">Savijanje torza (X)</label>
+    <input type="range" id="torsoSlider" min="-45" max="45" value="0" class="slider-input">
+    <label class="slider-label y-label" for="torsoYSlider">Zakretanje torza (Y)</label>
+    <input type="range" id="torsoYSlider" min="-25" max="25" value="0" class="slider-input">
+  </div>
+  <!-- L NADLAKTICA -->
+  <div class="slider-group" data-part="left_shoulder">
+    <label class="slider-label" for="leftShoulderSlider">Rotiraj L Nadlakticu (X)</label>
+    <input type="range" id="leftShoulderSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="leftShoulderYSlider">Rotiraj L Nadlakticu (Y)</label>
+    <input type="range" id="leftShoulderYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <!-- L PODLAKTICA -->
+  <div class="slider-group" data-part="left_arm">
+    <label class="slider-label" for="leftArmSlider">Rotiraj L Podlakticu (X)</label>
+    <input type="range" id="leftArmSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="leftArmYSlider">Rotiraj L Podlakticu (Y)</label>
+    <input type="range" id="leftArmYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <!-- L ŠAKA -->
+  <div class="slider-group" data-part="left_hand">
+    <label class="slider-label" for="leftHandSlider">Rotiraj L Šaku (X)</label>
+    <input type="range" id="leftHandSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="leftHandYSlider">Rotiraj L Šaku (Y)</label>
+    <input type="range" id="leftHandYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <!-- D NADLAKTICA -->
+  <div class="slider-group" data-part="right_shoulder">
+    <label class="slider-label" for="rightShoulderSlider">Rotiraj D Nadlakticu (X)</label>
+    <input type="range" id="rightShoulderSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="rightShoulderYSlider">Rotiraj D Nadlakticu (Y)</label>
+    <input type="range" id="rightShoulderYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <!-- D PODLAKTICA -->
+  <div class="slider-group" data-part="right_arm">
+    <label class="slider-label" for="rightArmSlider">Rotiraj D Podlakticu (X)</label>
+    <input type="range" id="rightArmSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="rightArmYSlider">Rotiraj D Podlakticu (Y)</label>
+    <input type="range" id="rightArmYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <!-- D ŠAKA -->
+  <div class="slider-group" data-part="right_hand">
+    <label class="slider-label" for="rightHandSlider">Rotiraj D Šaku (X)</label>
+    <input type="range" id="rightHandSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="rightHandYSlider">Rotiraj D Šaku (Y)</label>
+    <input type="range" id="rightHandYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <!-- L NOGE -->
+  <div class="slider-group" data-part="left_thigh">
+    <label class="slider-label" for="leftThighSlider">Rotiraj L Natkoljenicu (X)</label>
+    <input type="range" id="leftThighSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="leftThighYSlider">Rotiraj L Natkoljenicu (Y)</label>
+    <input type="range" id="leftThighYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <div class="slider-group" data-part="left_shin">
+    <label class="slider-label" for="leftShinSlider">Rotiraj L Potkoljenicu (X)</label>
+    <input type="range" id="leftShinSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="leftShinYSlider">Rotiraj L Potkoljenicu (Y)</label>
+    <input type="range" id="leftShinYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <div class="slider-group" data-part="left_foot">
+    <label class="slider-label" for="leftFootSlider">Rotiraj L Stopalo (X)</label>
+    <input type="range" id="leftFootSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="leftFootYSlider">Rotiraj L Stopalo (Y)</label>
+    <input type="range" id="leftFootYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <div class="slider-group" data-part="left_toes">
+    <label class="slider-label" for="leftToesSlider">Rotiraj L Prste (X)</label>
+    <input type="range" id="leftToesSlider" min="-20" max="20" value="0" class="slider-input">
+  </div>
+  <!-- D NOGE -->
+  <div class="slider-group" data-part="right_thigh">
+    <label class="slider-label" for="rightThighSlider">Rotiraj D Natkoljenicu (X)</label>
+    <input type="range" id="rightThighSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="rightThighYSlider">Rotiraj D Natkoljenicu (Y)</label>
+    <input type="range" id="rightThighYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <div class="slider-group" data-part="right_shin">
+    <label class="slider-label" for="rightShinSlider">Rotiraj D Potkoljenicu (X)</label>
+    <input type="range" id="rightShinSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="rightShinYSlider">Rotiraj D Potkoljenicu (Y)</label>
+    <input type="range" id="rightShinYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <div class="slider-group" data-part="right_foot">
+    <label class="slider-label" for="rightFootSlider">Rotiraj D Stopalo (X)</label>
+    <input type="range" id="rightFootSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="rightFootYSlider">Rotiraj D Stopalo (Y)</label>
+    <input type="range" id="rightFootYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <div class="slider-group" data-part="right_toes">
+    <label class="slider-label" for="rightToesSlider">Rotiraj D Prste (X)</label>
+    <input type="range" id="rightToesSlider" min="-20" max="20" value="0" class="slider-input">
+  </div>
+</div>
+
+</body>
+</html>
