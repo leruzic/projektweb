@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="hr">
+<head>
+  <meta charset="utf-8" />
+  <title>Three.js Body Control</title>
+  <style>
+html, body {
+  height: 100%;
+  margin: 0;
+  background-color: black;
+}
+
+.silueta-fixed {
+  position: fixed;
+  left: 2vw;
+  top: 2vh;
+  width: clamp(150px, 15vw, 280px);
+  height: 50vh;
+  background: transparent;
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  pointer-events: none;
+}
+
+.silueta-gumbi {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  pointer-events: auto;
+}
+
+.body-btn {
+  position: absolute;
+  min-width: 50px;
+  min-height: 28px;
+  background: #A5E2FF;
+  color: #222;
+  border: none;
+  border-radius: 10px;
+  font-size: clamp(0.8em, 1vw, 1em);
+  cursor: pointer;
+  transition: background 0.2s, box-shadow 0.2s;
+  box-shadow: 0 2px 8px #0006;
+  text-align: center;
+  pointer-events: auto;
+  user-select: none;
+  font-family: inherit;
+  font-weight: bold;
+}
+.body-btn.selected {
+  background: #FFBCFF;
+  color: #222;
+  box-shadow: 0 0 12px 2px #fff3;
+  border: none;
+}
+
+/* Pozicije gumba (gledateljeva lijeva = modelova desna) */
+.head  { left: 50%; top: 0%;    transform: translate(-50%,0); width: 80px;}
+.torso { left: 50%; top: 14%;   transform: translate(-50%,0); width: 80px; height: 70px;}
+.left_shoulder { left: 7%;  top: 19%; width: 75px;}
+.left_arm     { left: 2%;  top: 32%; width: 70px;}
+.left_hand    { left: 0%;  top: 46%; width: 65px;}
+.right_shoulder { right: 7%;  top: 19%; width: 75px;}
+.right_arm     { right: 2%;  top: 32%; width: 70px;}
+.right_hand    { right: 0%;  top: 46%; width: 65px;}
+.left_thigh     { left: 25%; top: 45%; width: 70px;}
+.left_shin      { left: 25%; top: 62%; width: 70px;}
+.left_foot      { left: 25%; top: 80%; width: 70px;}
+.left_toes      { left: 25%; top: 92%; width: 70px;}
+.right_thigh     { right: 25%; top: 45%; width: 70px;}
+.right_shin      { right: 25%; top: 62%; width: 70px;}
+.right_foot      { right: 25%; top: 80%; width: 70px;}
+.right_toes      { right: 25%; top: 92%; width: 70px;}
+
+.slider-box {
+  position: fixed;
+  left: 2vw;
+  top: calc(2vh + 50vh + 1vh);
+  width: clamp(150px, 15vw, 280px);
+  height: 40vh;
+  background: #181818ee;
+  border-radius: 14px;
+  box-shadow: 0 2px 16px #000c;
+  padding: 22px 18px 18px 18px;
+  z-index: 22;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: stretch;
+  justify-content: flex-start;
+  pointer-events: auto;
+  overflow-y: auto;
+}
+
+.slider-group {
+  display: none;
+  flex-direction: column;
+  gap: 14px;
+  align-items: stretch;
+  width: 100%;
+}
+.slider-group.active {
+  display: flex;
+}
+.slider-label {
+  position: static;
+  color: #fff;
+  font-size: 1em;
+  margin-bottom: 2px;
+  margin-top: 0;
+  width: 100%;
+  display: block;
+  text-align: left;
+}
+.slider-input {
+  position: static;
+  width: 100%;
+  margin-bottom: 10px;
+  margin-top: 0;
+  display: block;
+}
+.slider-label.y-label {
+  margin-top: 10px;
+}
+
+@media (max-width: 600px) {
+  .silueta-fixed {
+    width: 90vw;
+    height: 40vh;
+    min-width: 120px;
+    min-height: 180px;
+    left: 4vw;
+    top: 2vh;
+  }
+  .body-btn {
+    min-width: 38px;
+    min-height: 22px;
+    font-size: clamp(0.7em, 2vw, 1em);
+  }
+  .slider-box {
+    width: 90vw;
+    height: 40vh;
+    min-width: 120px;
+    left: 4vw;
+    top: calc(2vh + 40vh + 1vh);
+  }
+}
+  </style>
+</head>
+<body>
+
+<div class="silueta-fixed">
+  <div class="silueta-gumbi">
+    <button class="body-btn head" data-part="head">Glava</button>
+    <button class="body-btn torso" data-part="torso">Torzo</button>
+    <!-- Lijeva ruka (gledateljeva lijeva) -->
+    <button class="body-btn left_shoulder" data-part="left_shoulder">L Nadlaktica</button>
+    <button class="body-btn left_arm" data-part="left_arm">L Podlaktica</button>
+    <button class="body-btn left_hand" data-part="left_hand">L Šaka</button>
+    <!-- Desna ruka (gledateljeva desna) -->
+    <button class="body-btn right_shoulder" data-part="right_shoulder">D Nadlaktica</button>
+    <button class="body-btn right_arm" data-part="right_arm">D Podlaktica</button>
+    <button class="body-btn right_hand" data-part="right_hand">D Šaka</button>
+    <!-- Lijeva noga -->
+    <button class="body-btn left_thigh" data-part="left_thigh">L Natkoljenica</button>
+    <button class="body-btn left_shin" data-part="left_shin">L Potkoljenica</button>
+    <button class="body-btn left_foot" data-part="left_foot">L Stopalo</button>
+    <button class="body-btn left_toes" data-part="left_toes">L Prsti</button>
+    <!-- Desna noga -->
+    <button class="body-btn right_thigh" data-part="right_thigh">D Natkoljenica</button>
+    <button class="body-btn right_shin" data-part="right_shin">D Potkoljenica</button>
+    <button class="body-btn right_foot" data-part="right_foot">D Stopalo</button>
+    <button class="body-btn right_toes" data-part="right_toes">D Prsti</button>
+  </div>
+</div>
+
+<div class="slider-box" id="sliderBox">
+  <!-- GLAVA -->
+  <div class="slider-group" data-part="head">
+    <label class="slider-label" for="headSlider">Rotiraj glavu i vrat (X)</label>
+    <input type="range" id="headSlider" min="-45" max="45" value="0" class="slider-input">
+    <label class="slider-label y-label" for="headYSlider">Rotiraj glavu i vrat (Y)</label>
+    <input type="range" id="headYSlider" min="-45" max="45" value="0" class="slider-input">
+  </div>
+  <!-- TORZO -->
+  <div class="slider-group" data-part="torso">
+    <label class="slider-label" for="torsoSlider">Savijanje torza (X)</label>
+    <input type="range" id="torsoSlider" min="-45" max="45" value="0" class="slider-input">
+    <label class="slider-label y-label" for="torsoYSlider">Zakretanje torza (Y)</label>
+    <input type="range" id="torsoYSlider" min="-25" max="25" value="0" class="slider-input">
+  </div>
+  <!-- L NADLAKTICA -->
+  <div class="slider-group" data-part="left_shoulder">
+    <label class="slider-label" for="leftShoulderSlider">Rotiraj L Nadlakticu (X)</label>
+    <input type="range" id="leftShoulderSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="leftShoulderYSlider">Rotiraj L Nadlakticu (Y)</label>
+    <input type="range" id="leftShoulderYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <!-- L PODLAKTICA -->
+  <div class="slider-group" data-part="left_arm">
+    <label class="slider-label" for="leftArmSlider">Rotiraj L Podlakticu (X)</label>
+    <input type="range" id="leftArmSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="leftArmYSlider">Rotiraj L Podlakticu (Y)</label>
+    <input type="range" id="leftArmYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <!-- L ŠAKA -->
+  <div class="slider-group" data-part="left_hand">
+    <label class="slider-label" for="leftHandSlider">Rotiraj L Šaku (X)</label>
+    <input type="range" id="leftHandSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="leftHandYSlider">Rotiraj L Šaku (Y)</label>
+    <input type="range" id="leftHandYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <!-- D NADLAKTICA -->
+  <div class="slider-group" data-part="right_shoulder">
+    <label class="slider-label" for="rightShoulderSlider">Rotiraj D Nadlakticu (X)</label>
+    <input type="range" id="rightShoulderSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="rightShoulderYSlider">Rotiraj D Nadlakticu (Y)</label>
+    <input type="range" id="rightShoulderYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <!-- D PODLAKTICA -->
+  <div class="slider-group" data-part="right_arm">
+    <label class="slider-label" for="rightArmSlider">Rotiraj D Podlakticu (X)</label>
+    <input type="range" id="rightArmSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="rightArmYSlider">Rotiraj D Podlakticu (Y)</label>
+    <input type="range" id="rightArmYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <!-- D ŠAKA -->
+  <div class="slider-group" data-part="right_hand">
+    <label class="slider-label" for="rightHandSlider">Rotiraj D Šaku (X)</label>
+    <input type="range" id="rightHandSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="rightHandYSlider">Rotiraj D Šaku (Y)</label>
+    <input type="range" id="rightHandYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <!-- L NOGE -->
+  <div class="slider-group" data-part="left_thigh">
+    <label class="slider-label" for="leftThighSlider">Rotiraj L Natkoljenicu (X)</label>
+    <input type="range" id="leftThighSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="leftThighYSlider">Rotiraj L Natkoljenicu (Y)</label>
+    <input type="range" id="leftThighYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <div class="slider-group" data-part="left_shin">
+    <label class="slider-label" for="leftShinSlider">Rotiraj L Potkoljenicu (X)</label>
+    <input type="range" id="leftShinSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="leftShinYSlider">Rotiraj L Potkoljenicu (Y)</label>
+    <input type="range" id="leftShinYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <div class="slider-group" data-part="left_foot">
+    <label class="slider-label" for="leftFootSlider">Rotiraj L Stopalo (X)</label>
+    <input type="range" id="leftFootSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="leftFootYSlider">Rotiraj L Stopalo (Y)</label>
+    <input type="range" id="leftFootYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <div class="slider-group" data-part="left_toes">
+    <label class="slider-label" for="leftToesSlider">Rotiraj L Prste (X)</label>
+    <input type="range" id="leftToesSlider" min="-20" max="20" value="0" class="slider-input">
+  </div>
+  <!-- D NOGE -->
+  <div class="slider-group" data-part="right_thigh">
+    <label class="slider-label" for="rightThighSlider">Rotiraj D Natkoljenicu (X)</label>
+    <input type="range" id="rightThighSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="rightThighYSlider">Rotiraj D Natkoljenicu (Y)</label>
+    <input type="range" id="rightThighYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <div class="slider-group" data-part="right_shin">
+    <label class="slider-label" for="rightShinSlider">Rotiraj D Potkoljenicu (X)</label>
+    <input type="range" id="rightShinSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="rightShinYSlider">Rotiraj D Potkoljenicu (Y)</label>
+    <input type="range" id="rightShinYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <div class="slider-group" data-part="right_foot">
+    <label class="slider-label" for="rightFootSlider">Rotiraj D Stopalo (X)</label>
+    <input type="range" id="rightFootSlider" min="-90" max="90" value="0" class="slider-input">
+    <label class="slider-label y-label" for="rightFootYSlider">Rotiraj D Stopalo (Y)</label>
+    <input type="range" id="rightFootYSlider" min="-90" max="90" value="0" class="slider-input">
+  </div>
+  <div class="slider-group" data-part="right_toes">
+    <label class="slider-label" for="rightToesSlider">Rotiraj D Prste (X)</label>
+    <input type="range" id="rightToesSlider" min="-20" max="20" value="0" class="slider-input">
+  </div>
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+
+let modelRoot = null;
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100);
+camera.position.z = 5;
+
+const renderer = new THREE.WebGLRenderer();
+renderer.setSize(window.innerWidth, window.innerHeight);
+document.body.appendChild(renderer.domElement);
+
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+
+const hemLight = new THREE.HemisphereLight(0xffffff, 0x444444);
+scene.add(hemLight);
+
+const gltfLoader = new GLTFLoader();
+gltfLoader.load('Model.glb', (gltf) => {
+  modelRoot = gltf.scene;
+  scene.add(modelRoot);
+
+  modelRoot.traverse((object) => {
+    if (object.isBone) {
+      console.log('Bone:', object.name);
+    }
+  });
+
+  initSliders();
+});
+
+function initSliders() {
+  // GLAVA
+  const headSlider = document.getElementById('headSlider');
+  const headYSlider = document.getElementById('headYSlider');
+  const headBones = ['mixamorigNeck', 'mixamorigHead']
+    .map(name => modelRoot.getObjectByName(name)).filter(bone => bone);
+
+  headSlider.addEventListener('input', () => {
+    const radians = THREE.MathUtils.degToRad(headSlider.value);
+    headBones.forEach(bone => { bone.rotation.x = radians; });
+  });
+  headYSlider.addEventListener('input', () => {
+    const radians = THREE.MathUtils.degToRad(headYSlider.value);
+    headBones.forEach(bone => { bone.rotation.y = radians; });
+  });
+
+  // TORZO
+  const torsoSlider = document.getElementById('torsoSlider');
+  const torsoYSlider = document.getElementById('torsoYSlider');
+  const torsoBones = ['mixamorigSpine', 'mixamorigSpine1', 'mixamorigSpine2']
+    .map(name => modelRoot.getObjectByName(name)).filter(bone => bone);
+
+  torsoSlider.addEventListener('input', () => {
+    const radians = THREE.MathUtils.degToRad(torsoSlider.value);
+    torsoBones.forEach(bone => { bone.rotation.x = radians; });
+  });
+  torsoYSlider.addEventListener('input', () => {
+    const radians = THREE.MathUtils.degToRad(torsoYSlider.value);
+    torsoBones.forEach(bone => { bone.rotation.y = radians; });
+  });
+
+  // L NADLAKTICA (gledateljeva lijeva = modelova desna)
+  const leftShoulderSlider = document.getElementById('leftShoulderSlider');
+  const leftShoulderYSlider = document.getElementById('leftShoulderYSlider');
+  const leftShoulderBone = modelRoot.getObjectByName('mixamorigRightArm');
+  leftShoulderBone.rotation.order = 'YXZ';
+  leftShoulderSlider.addEventListener('input', () => {
+    leftShoulderBone.rotation.x = THREE.MathUtils.degToRad(leftShoulderSlider.value);
+  });
+  leftShoulderYSlider.addEventListener('input', () => {
+    leftShoulderBone.rotation.y = THREE.MathUtils.degToRad(leftShoulderYSlider.value);
+  });
+
+  // L PODLAKTICA (gledateljeva lijeva = modelova desna)
+  const leftArmSlider = document.getElementById('leftArmSlider');
+  const leftArmYSlider = document.getElementById('leftArmYSlider');
+  const leftArmBone = modelRoot.getObjectByName('mixamorigRightForeArm');
+  leftArmBone.rotation.order = 'YXZ';
+  leftArmSlider.addEventListener('input', () => {
+    leftArmBone.rotation.x = THREE.MathUtils.degToRad(leftArmSlider.value);
+  });
+  leftArmYSlider.addEventListener('input', () => {
+    leftArmBone.rotation.y = THREE.MathUtils.degToRad(leftArmYSlider.value);
+  });
+
+  // L ŠAKA (gledateljeva lijeva = modelova desna)
+  const leftHandSlider = document.getElementById('leftHandSlider');
+  const leftHandYSlider = document.getElementById('leftHandYSlider');
+  const leftHandBone = modelRoot.getObjectByName('mixamorigRightHand');
+  leftHandBone.rotation.order = 'YXZ';
+  leftHandSlider.addEventListener('input', () => {
+    leftHandBone.rotation.x = THREE.MathUtils.degToRad(leftHandSlider.value);
+  });
+  leftHandYSlider.addEventListener('input', () => {
+    leftHandBone.rotation.y = THREE.MathUtils.degToRad(leftHandYSlider.value);
+  });
+
+  // D NADLAKTICA (gledateljeva desna = modelova lijeva)
+  const rightShoulderSlider = document.getElementById('rightShoulderSlider');
+  const rightShoulderYSlider = document.getElementById('rightShoulderYSlider');
+  const rightShoulderBone = modelRoot.getObjectByName('mixamorigLeftArm');
+  rightShoulderBone.rotation.order = 'YXZ';
+  rightShoulderSlider.addEventListener('input', () => {
+    rightShoulderBone.rotation.x = THREE.MathUtils.degToRad(rightShoulderSlider.value);
+  });
+  rightShoulderYSlider.addEventListener('input', () => {
+    rightShoulderBone.rotation.y = THREE.MathUtils.degToRad(rightShoulderYSlider.value);
+  });
+
+  // D PODLAKTICA (gledateljeva desna = modelova lijeva)
+  const rightArmSlider = document.getElementById('rightArmSlider');
+  const rightArmYSlider = document.getElementById('rightArmYSlider');
+  const rightArmBone = modelRoot.getObjectByName('mixamorigLeftForeArm');
+  rightArmBone.rotation.order = 'YXZ';
+  rightArmSlider.addEventListener('input', () => {
+    rightArmBone.rotation.x = THREE.MathUtils.degToRad(rightArmSlider.value);
+  });
+  rightArmYSlider.addEventListener('input', () => {
+    rightArmBone.rotation.y = THREE.MathUtils.degToRad(rightArmYSlider.value);
+  });
+
+  // D ŠAKA (gledateljeva desna = modelova lijeva)
+  const rightHandSlider = document.getElementById('rightHandSlider');
+  const rightHandYSlider = document.getElementById('rightHandYSlider');
+  const rightHandBone = modelRoot.getObjectByName('mixamorigLeftHand');
+  rightHandBone.rotation.order = 'YXZ';
+  rightHandSlider.addEventListener('input', () => {
+    rightHandBone.rotation.x = THREE.MathUtils.degToRad(rightHandSlider.value);
+  });
+  rightHandYSlider.addEventListener('input', () => {
+    rightHandBone.rotation.y = THREE.MathUtils.degToRad(rightHandYSlider.value);
+  });
+
+  // L NOGA (gledateljeva lijeva = modelova desna)
+  const leftThighSlider = document.getElementById('leftThighSlider');
+  const leftThighYSlider = document.getElementById('leftThighYSlider');
+  const leftThighBone = modelRoot.getObjectByName('mixamorigRightUpLeg');
+  leftThighBone.rotation.order = 'YXZ';
+  leftThighSlider.addEventListener('input', () => {
+    leftThighBone.rotation.x = THREE.MathUtils.degToRad(leftThighSlider.value);
+  });
+  leftThighYSlider.addEventListener('input', () => {
+    leftThighBone.rotation.y = THREE.MathUtils.degToRad(leftThighYSlider.value);
+  });
+
+  const leftShinSlider = document.getElementById('leftShinSlider');
+  const leftShinYSlider = document.getElementById('leftShinYSlider');
+  const leftShinBone = modelRoot.getObjectByName('mixamorigRightLeg');
+  leftShinBone.rotation.order = 'YXZ';
+  leftShinSlider.addEventListener('input', () => {
+    leftShinBone.rotation.x = THREE.MathUtils.degToRad(leftShinSlider.value);
+  });
+  leftShinYSlider.addEventListener('input', () => {
+    leftShinBone.rotation.y = THREE.MathUtils.degToRad(leftShinYSlider.value);
+  });
+
+  const leftFootSlider = document.getElementById('leftFootSlider');
+  const leftFootYSlider = document.getElementById('leftFootYSlider');
+  const leftFootBone = modelRoot.getObjectByName('mixamorigRightFoot');
+  leftFootBone.rotation.order = 'YXZ';
+  leftFootSlider.addEventListener('input', () => {
+    leftFootBone.rotation.x = THREE.MathUtils.degToRad(leftFootSlider.value);
+  });
+  leftFootYSlider.addEventListener('input', () => {
+    leftFootBone.rotation.y = THREE.MathUtils.degToRad(leftFootYSlider.value);
+  });
+
+  const leftToesSlider = document.getElementById('leftToesSlider');
+  const leftToesBone = modelRoot.getObjectByName('mixamorigRightToeBase');
+  leftToesBone.rotation.order = 'YXZ';
+  leftToesSlider.addEventListener('input', () => {
+    leftToesBone.rotation.x = THREE.MathUtils.degToRad(leftToesSlider.value);
+  });
+
+  // D NOGA (gledateljeva desna = modelova lijeva)
+  const rightThighSlider = document.getElementById('rightThighSlider');
+  const rightThighYSlider = document.getElementById('rightThighYSlider');
+  const rightThighBone = modelRoot.getObjectByName('mixamorigLeftUpLeg');
+  rightThighBone.rotation.order = 'YXZ';
+  rightThighSlider.addEventListener('input', () => {
+    rightThighBone.rotation.x = THREE.MathUtils.degToRad(rightThighSlider.value);
+  });
+  rightThighYSlider.addEventListener('input', () => {
+    rightThighBone.rotation.y = THREE.MathUtils.degToRad(rightThighYSlider.value);
+  });
+
+  const rightShinSlider = document.getElementById('rightShinSlider');
+  const rightShinYSlider = document.getElementById('rightShinYSlider');
+  const rightShinBone = modelRoot.getObjectByName('mixamorigLeftLeg');
+  rightShinBone.rotation.order = 'YXZ';
+  rightShinSlider.addEventListener('input', () => {
+    rightShinBone.rotation.x = THREE.MathUtils.degToRad(rightShinSlider.value);
+  });
+  rightShinYSlider.addEventListener('input', () => {
+    rightShinBone.rotation.y = THREE.MathUtils.degToRad(rightShinYSlider.value);
+  });
+
+  const rightFootSlider = document.getElementById('rightFootSlider');
+  const rightFootYSlider = document.getElementById('rightFootYSlider');
+  const rightFootBone = modelRoot.getObjectByName('mixamorigLeftFoot');
+  rightFootBone.rotation.order = 'YXZ';
+  rightFootSlider.addEventListener('input', () => {
+    rightFootBone.rotation.x = THREE.MathUtils.degToRad(rightFootSlider.value);
+  });
+  rightFootYSlider.addEventListener('input', () => {
+    rightFootBone.rotation.y = THREE.MathUtils.degToRad(rightFootYSlider.value);
+  });
+
+  const rightToesSlider = document.getElementById('rightToesSlider');
+  const rightToesBone = modelRoot.getObjectByName('mixamorigLeftToeBase');
+  rightToesBone.rotation.order = 'YXZ';
+  rightToesSlider.addEventListener('input', () => {
+    rightToesBone.rotation.x = THREE.MathUtils.degToRad(rightToesSlider.value);
+  });
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+// GUI logika za gumbove i slider-box
+const bodyBtns = document.querySelectorAll('.body-btn');
+const sliderGroups = document.querySelectorAll('.slider-group');
+let selectedBtn = null;
+
+function deselectAllBtns() {
+  bodyBtns.forEach(btn => btn.classList.remove('selected'));
+  sliderGroups.forEach(grp => grp.classList.remove('active'));
+  selectedBtn = null;
+}
+
+bodyBtns.forEach(btn => {
+  btn.addEventListener('click', function() {
+    const part = btn.getAttribute('data-part');
+    if (btn.classList.contains('selected')) {
+      btn.classList.remove('selected');
+      sliderGroups.forEach(grp => grp.classList.remove('active'));
+      selectedBtn = null;
+      return;
+    }
+    deselectAllBtns();
+    btn.classList.add('selected');
+    document.querySelectorAll(`.slider-group[data-part="${part}"]`).forEach(grp => {
+      grp.classList.add('active');
+    });
+    selectedBtn = btn;
+  });
+});
+
+window.addEventListener('DOMContentLoaded', () => {
+  deselectAllBtns();
+});
+</script>
+</body>
+</html>
