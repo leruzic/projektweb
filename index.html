@@ -147,6 +147,28 @@
     top: calc(2vh + 40vh + 1vh);
   }
 }
+.screenshot-btn {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 1000;
+  padding: 18px 32px;
+  font-size: 1.3em;
+  background: linear-gradient(135deg, #A5E2FF 0%, #222 60%, orange 100%);
+  color: #fff;
+  border: none;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px #000a;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+}
+.screenshot-btn:hover {
+  background: linear-gradient(135deg, #A5E2FF 0%, #333 60%, #ff9800 100%);
+  box-shadow: 0 6px 32px #000d;
+  transform: scale(1.07);
+}
+
 </style>
 </head>
 <body>
@@ -280,6 +302,7 @@
     <input type="range" id="rightToesSlider" min="-20" max="20" value="0" class="slider-input">
   </div>
 </div>
+<button id="screenshotBtn" class="screenshot-btn">📸 Spremi sliku</button>
 
 <script type="module">
 import * as THREE from 'three';
@@ -535,6 +558,17 @@ bodyBtns.forEach(btn => {
     });
     selectedBtn = btn;
   });
+});
+document.getElementById('screenshotBtn').addEventListener('click', () => {
+  // renderer.domElement je tvoj Three.js canvas
+  renderer.render(scene, camera); // osiguraj da je frame aktualan
+  renderer.domElement.toBlob(function(blob) {
+    const link = document.createElement('a');
+    link.download = 'threejs_screenshot.png';
+    link.href = URL.createObjectURL(blob);
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(link.href), 1000);
+  }, 'image/png');
 });
 
 window.addEventListener('DOMContentLoaded', () => {
